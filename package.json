@@ -1,7 +1,10 @@
 {
   "name": "covid19-ui",
   "nativescript": {
-    "id": "org.nativescript.covid19ui"
+    "id": "org.nativescript.covid19ui",
+    "tns-android": {
+      "version": "6.5.0"
+    }
   },
   "version": "0.0.0",
   "scripts": {
