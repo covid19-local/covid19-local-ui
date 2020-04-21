@@ -2,4 +2,9 @@
 <ActionBar [title]="title"></ActionBar>
 <StackLayout  class="p-20">
     <Label text="Welcome to {{ title }}!" class="h1 text-center" textWrap="true"></Label>
+    <MapView #mapView [latitude]="latitude" [longitude]="longitude"
+             [zoom]="zoom" [bearing]="bearing"
+             [tilt]="tilt" i-padding="50,50,50,50" [padding]="padding" (mapReady)="onMapReady($event)"
+             [visibility]="isLocationLoaded ? 'visible' : 'collapsed'"
+></MapView>
 </StackLayout>
