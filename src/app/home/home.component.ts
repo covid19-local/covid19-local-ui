@@ -82,7 +82,7 @@ export class HomeComponent implements OnInit {
 
   getCurrentAddress() {
     this.mapService.reverseGeocode(this.latitude, this.longitude)
-    .subscribe((response) => {
+    .subscribe(response => {
         if (response.status === 'OK') {
             this.countryResult = response.results.find(result => result.types.includes('country'));
             this.stateResult = response.results.find(result => result.types.includes('administrative_area_level_1'));
@@ -153,7 +153,37 @@ export class HomeComponent implements OnInit {
                 this.longitude = this.countyResult.geometry.location.lng;
             }
             this.isLocationLoaded = true;
-            this.setMarker();
+            this.setPrimaryMarker();
+            result.data[0].region.cities.filter(report => report !== this.report).forEach(report => {
+                if (report.name.toUpperCase() !== 'UNASSIGNED') {
+                    const address = `${report.name}, ${this.state.short_name}`;
+                    this.mapService.geocode(address).subscribe(response => {
+                        const countyResult = response.results.find(geocodeResult =>
+                            geocodeResult.types.includes('administrative_area_level_2'));
+                        const cityResult = response.results.find(geocodeResult =>
+                            geocodeResult.types.includes('locality'));
+
+                        let latitude: number;
+                        let longitude: number;
+                        if (!isNullOrUndefined(countyResult)) {
+                            latitude = countyResult.geometry.location.lat;
+                            longitude = countyResult.geometry.location.lng;
+                        }
+                        if (!isNullOrUndefined(cityResult)) {
+                            if (isNullOrUndefined(latitude) || isNullOrUndefined(longitude)) {
+                                latitude = cityResult.geometry.location.lat;
+                                longitude = cityResult.geometry.location.lng;
+                            }
+                        }
+                        this.setMarker(latitude, longitude, report.name, report.confirmed, false);
+                    });
+                } else {
+                    this.setMarker(
+                        this.stateResult.geometry.location.lat,
+                        this.stateResult.geometry.location.lng,
+                        report.name, report.confirmed, false);
+                }
+            });
           } else {
               const yesterday = new Date();
               yesterday.setDate(this.date.getDate() - 1);
@@ -176,17 +206,23 @@ export class HomeComponent implements OnInit {
       cityReport.name.toUpperCase().trim().includes(address.long_name.toUpperCase().replace('PARISH', '').trim()));
   }
 
-  setMarker() {
-      if (this.mapView) {
+  setMarker(latitude: number, longitude: number, region: string, confirmedCases: number, showInfoWindow: boolean) {
+      if (this.mapView && !isNullOrUndefined(latitude) && !isNullOrUndefined(longitude)) {
         console.log('Setting a marker...');
         const marker = new Marker();
-        marker.position = Position.positionFromLatLng(this.latitude, this.longitude);
-        marker.title = this.report.name;
-        marker.snippet = `Confirmed Cases: ${this.report.confirmed}`;
+        marker.position = Position.positionFromLatLng(latitude, longitude);
+        marker.title = region;
+        marker.snippet = `Confirmed Cases: ${confirmedCases}`;
         marker.userData = {index: 1};
         this.mapView.addMarker(marker);
-        marker.showInfoWindow();
+        if (showInfoWindow) {
+            marker.showInfoWindow();
+        }
       }
+  }
+
+  setPrimaryMarker() {
+      this.setMarker(this.latitude, this.longitude, this.report.name, this.report.confirmed, true);
   }
 
   onMapReady(event) {

@@ -24,6 +24,12 @@ export class MapService {
 
   constructor(private http: HttpClient, private settingsService: SettingsService) { }
 
+  geocode(address: string): Observable<GeocodeResponse> {
+    address = encodeURI(address);
+    return this.http.get<GeocodeResponse>(
+      `${this.geoCodingApiBaseUrl}?address=${address}&key=${this.settings.geocodingApiKey}`);
+  }
+
   reverseGeocode(latitude: number, longitude: number): Observable<GeocodeResponse> {
     return this.http.get<GeocodeResponse>(
       `${this.geoCodingApiBaseUrl}?latlng=${latitude},${longitude}&key=${this.settings.geocodingApiKey}`);
