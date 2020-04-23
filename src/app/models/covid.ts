@@ -36,6 +36,8 @@ export interface City {
     name:           string;
     date:           string;
     fips:           number;
+    lat:            null | string;
+    long:           null | string;
     confirmed:      number;
     deaths:         number;
     confirmed_diff: number;

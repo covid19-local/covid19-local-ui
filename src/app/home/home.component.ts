@@ -137,46 +137,19 @@ export class HomeComponent implements OnInit {
                         deaths: datum.deaths,
                         confirmed_diff: datum.confirmed_diff,
                         deaths_diff: datum.deaths_diff,
-                        last_update: datum.last_update
+                        last_update: datum.last_update,
+                        lat: datum.region.lat,
+                        long: datum.region.long
                      };
-                    console.log('Setting location to state...');
-                    this.latitude = this.stateResult.geometry.location.lat;
-                    this.longitude = this.stateResult.geometry.location.lng;
-                } else {
-                    console.log('Setting location to city...');
-                    this.latitude = this.cityResult.geometry.location.lat;
-                    this.longitude = this.cityResult.geometry.location.lng;
                 }
-            } else {
-                console.log('Setting location to county...');
-                this.latitude = this.countyResult.geometry.location.lat;
-                this.longitude = this.countyResult.geometry.location.lng;
             }
+            this.latitude = +this.report.lat;
+            this.longitude = +this.report.long;
             this.isLocationLoaded = true;
             this.setPrimaryMarker();
             result.data[0].region.cities.filter(report => report !== this.report).forEach(report => {
                 if (report.name.toUpperCase() !== 'UNASSIGNED') {
-                    const address = `${report.name}, ${this.state.short_name}`;
-                    this.mapService.geocode(address).subscribe(response => {
-                        const countyResult = response.results.find(geocodeResult =>
-                            geocodeResult.types.includes('administrative_area_level_2'));
-                        const cityResult = response.results.find(geocodeResult =>
-                            geocodeResult.types.includes('locality'));
-
-                        let latitude: number;
-                        let longitude: number;
-                        if (!isNullOrUndefined(countyResult)) {
-                            latitude = countyResult.geometry.location.lat;
-                            longitude = countyResult.geometry.location.lng;
-                        }
-                        if (!isNullOrUndefined(cityResult)) {
-                            if (isNullOrUndefined(latitude) || isNullOrUndefined(longitude)) {
-                                latitude = cityResult.geometry.location.lat;
-                                longitude = cityResult.geometry.location.lng;
-                            }
-                        }
-                        this.setMarker(latitude, longitude, report.name, report.confirmed, false);
-                    });
+                    this.setMarker(+report.lat, +report.long, report.name, report.confirmed, false);
                 } else {
                     this.setMarker(
                         this.stateResult.geometry.location.lat,
