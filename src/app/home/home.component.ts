@@ -8,8 +8,23 @@ import { AddressComponent, Result } from '../models/geocode';
 import { CovidService } from '../services/covid.service';
 import { City } from '../models/covid';
 import { isNullOrUndefined } from 'util';
+import { DatePipe, DecimalPipe } from '@angular/common';
 
 registerElement('MapView', () => MapView);
+
+const templates = `<template key="defaultTemplate">
+                        <StackLayout orientation="vertical">
+                            <Label text="{{userData.region}}"
+                                style="font-size: 14; font-weight: bold;">
+                            </Label>
+                            <Label text="{{userData.confirmedCases}}" className="snippet"
+                                style="font-size: 12;">
+                            </Label>
+                            <Label text="{{userData.date}}" className="snippet"
+                                style="font-size: 12;">
+                            </Label>
+                        </StackLayout>
+                    </template>`;
 
 @Component({
   selector: 'app-home',
@@ -36,11 +51,12 @@ export class HomeComponent implements OnInit {
   city: AddressComponent;
   report: City;
   date = new Date();
-  @ViewChild('MapView', {static: false}) mapView: MapView;
+  @ViewChild('MapView', {static: false}) mapView: MapView & {infoWindowTemplates: string };
 
   lastCamera: String;
 
-  constructor(private mapService: MapService, private covidService: CovidService) { }
+  constructor(private mapService: MapService, private covidService: CovidService,
+    private datePipe: DatePipe, private decimalPipe: DecimalPipe) { }
 
   ngOnInit() {
   }
@@ -149,12 +165,14 @@ export class HomeComponent implements OnInit {
             this.setPrimaryMarker();
             result.data[0].region.cities.filter(report => report !== this.report).forEach(report => {
                 if (report.name.toUpperCase() !== 'UNASSIGNED') {
-                    this.setMarker(+report.lat, +report.long, report.name, report.confirmed, false);
+                    this.setMarker(+report.lat, +report.long, report.name, report.confirmed, this.convertToDate(report.date), false);
                 } else {
                     this.setMarker(
                         this.stateResult.geometry.location.lat,
                         this.stateResult.geometry.location.lng,
-                        report.name, report.confirmed, false);
+                        report.name, report.confirmed,
+                        this.convertToDate(report.date),
+                         false);
                 }
             });
           } else {
@@ -179,14 +197,17 @@ export class HomeComponent implements OnInit {
       cityReport.name.toUpperCase().trim().includes(address.long_name.toUpperCase().replace('PARISH', '').trim()));
   }
 
-  setMarker(latitude: number, longitude: number, region: string, confirmedCases: number, showInfoWindow: boolean) {
+  setMarker(latitude: number, longitude: number, region: string, confirmedCases: number, date: Date, showInfoWindow: boolean) {
       if (this.mapView && !isNullOrUndefined(latitude) && !isNullOrUndefined(longitude)) {
-        console.log('Setting a marker...');
+        console.log(`Setting a marker for ${region}...`);
         const marker = new Marker();
         marker.position = Position.positionFromLatLng(latitude, longitude);
-        marker.title = region;
-        marker.snippet = `Confirmed Cases: ${confirmedCases}`;
-        marker.userData = {index: 1};
+        marker.userData = {
+            region: region,
+            confirmedCases: `${this.decimalPipe.transform(confirmedCases)} confirmed cases`,
+            date: `Last updated ${this.datePipe.transform(date, 'shortDate')}`
+        };
+        marker.infoWindowTemplate = 'defaultTemplate';
         this.mapView.addMarker(marker);
         if (showInfoWindow) {
             marker.showInfoWindow();
@@ -195,13 +216,28 @@ export class HomeComponent implements OnInit {
   }
 
   setPrimaryMarker() {
-      this.setMarker(this.latitude, this.longitude, this.report.name, this.report.confirmed, true);
+      this.setMarker(this.latitude, this.longitude, this.report.name, this.report.confirmed, this.convertToDate(this.report.date), true);
   }
 
   onMapReady(event) {
       console.log('Map Ready');
 
       this.mapView = event.object;
+      this.mapView.infoWindowTemplates = templates;
       this.enableLocation();
+  }
+
+  convertToDate(input: string): Date {
+      const offsetHours = new Date().getTimezoneOffset() / 60;
+      let offsetIndicator = '+';
+      if (offsetHours > 0) {
+        offsetIndicator = '-';
+      }
+      let formattedOffset = `Z${offsetIndicator}${offsetHours}:00`;
+      if (offsetHours === 0) {
+        formattedOffset = 'Z';
+      }
+      input = `${input}${formattedOffset}`;
+      return new Date(input);
   }
 }
