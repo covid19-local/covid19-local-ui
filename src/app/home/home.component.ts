@@ -9,6 +9,7 @@ import { CovidService } from '../services/covid.service';
 import { City } from '../models/covid';
 import { isNullOrUndefined } from 'util';
 import { DatePipe, DecimalPipe } from '@angular/common';
+const firebase = require('nativescript-plugin-firebase');
 
 registerElement('MapView', () => MapView);
 
@@ -160,6 +161,7 @@ export class HomeComponent implements OnInit {
             this.latitude = +this.report.lat;
             this.longitude = +this.report.long;
             this.isLocationLoaded = true;
+            this.subscribeToNotifications();
             this.setPrimaryMarker();
             result.data[0].region.cities.filter(report => report !== this.report).forEach(report => {
                 if (report.name.toUpperCase() !== 'UNASSIGNED') {
@@ -215,6 +217,12 @@ export class HomeComponent implements OnInit {
 
   setPrimaryMarker() {
       this.setMarker(this.latitude, this.longitude, this.report.name, this.report.confirmed, this.convertToDate(this.report.date), true);
+  }
+  subscribeToNotifications() {
+      const stateTopic = `${encodeURI(this.country.short_name)}_${encodeURI(this.state.long_name)}`;
+      const cityTopic = `${stateTopic}_${encodeURI(this.report.name)}`;
+      firebase.subscribeToTopic(stateTopic).then(() => console.log(`Subscribed to topic ${stateTopic}`));
+      firebase.subscribeToTopic(cityTopic).then(() => console.log(`Subscribed to topic ${cityTopic}`));
   }
 
   onMapReady(event) {

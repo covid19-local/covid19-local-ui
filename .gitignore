@@ -44,3 +44,6 @@ Thumbs.db
 
 #Settings
 **/nativescript_google_maps_api.xml
+
+# Firebase
+google-services.json
