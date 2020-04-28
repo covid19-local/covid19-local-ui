@@ -130,11 +130,9 @@ export class HomeComponent implements OnInit {
   }
 
   getCovidReports() {
-      // TODO: Determine iso from API instead of hard coding
-      const iso = 'USA';
       const regionName = this.country.short_name;
       const province = this.state.long_name;
-      this.covidService.getReports(this.date, iso, regionName, province).subscribe(result => {
+      this.covidService.getReports(this.date, regionName, province).subscribe(result => {
           if (result.data.length > 0) {
             const datum = result.data[0];
             this.report = datum.region.cities.

@@ -14,13 +14,11 @@ export class CovidService {
 
   constructor(private http: HttpClient, private datePipe: DatePipe) { }
 
-  getReports(date: Date, iso: string, regionName: string, regionProvince: string): Observable<Covid> {
+  getReports(date: Date, regionName: string, regionProvince: string): Observable<Covid> {
     const formattedDate = this.datePipe.transform(date, 'yyyy-MM-dd');
-    iso = encodeURI(iso);
     regionName = encodeURI(regionName);
     regionProvince = encodeURI(regionProvince);
-    const q = encodeURI(`${regionName} ${regionProvince}`);
     return this.http.get<Covid>(
-      `${REPORTS_BASE_API}?date=${formattedDate}&q=${q}&iso=${iso}&region_name=${regionName}&region_province=${regionProvince}`);
+      `${REPORTS_BASE_API}?date=${formattedDate}&region_name=${regionName}&region_province=${regionProvince}`);
   }
 }
