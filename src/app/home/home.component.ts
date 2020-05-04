@@ -219,8 +219,10 @@ export class HomeComponent implements OnInit {
       this.setMarker(this.latitude, this.longitude, this.report.name, this.report.confirmed, this.convertToDate(this.report.date), true);
   }
   subscribeToNotifications() {
-      const stateTopic = `${encodeURI(this.country.short_name)}_${encodeURI(this.state.long_name)}`;
-      const cityTopic = `${stateTopic}_${encodeURI(this.report.name)}`;
+      const stateTopicArgs = [this.country.short_name, this.state.long_name];
+      const cityTopicArgs = stateTopicArgs.concat([this.report.name]);
+      const stateTopic = this.generateTopic(stateTopicArgs);
+      const cityTopic =  this.generateTopic(cityTopicArgs);
       firebase.subscribeToTopic(stateTopic).then(() => console.log(`Subscribed to topic ${stateTopic}`));
       firebase.subscribeToTopic(cityTopic).then(() => console.log(`Subscribed to topic ${cityTopic}`));
   }
@@ -246,4 +248,15 @@ export class HomeComponent implements OnInit {
       input = `${input}${formattedOffset}`;
       return new Date(input);
   }
+
+  generateTopic(topicArgs: string[]): string {
+    let topic = '';
+    for (const arg of topicArgs) {
+        topic += `${encodeURI(arg).replace('\'', '').replace('(', '').replace(')', '')}_`;
+    }
+    if (topic.length > 0) {
+        topic = topic.substring(0, topic.lastIndexOf('_'));
+    }
+    return topic;
+}
 }
