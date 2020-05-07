@@ -9,7 +9,7 @@ import { CovidService } from '../services/covid.service';
 import { City } from '../models/covid';
 import { isNullOrUndefined } from 'util';
 import { DatePipe, DecimalPipe } from '@angular/common';
-const firebase = require('nativescript-plugin-firebase');
+import { NotificationService } from '../services/notification.service';
 
 registerElement('MapView', () => MapView);
 
@@ -57,7 +57,8 @@ export class HomeComponent implements OnInit {
   lastCamera: String;
 
   constructor(private mapService: MapService, private covidService: CovidService,
-    private datePipe: DatePipe, private decimalPipe: DecimalPipe) { }
+    private datePipe: DatePipe, private decimalPipe: DecimalPipe,
+    private notificationService: NotificationService) { }
 
   ngOnInit() {
   }
@@ -223,8 +224,7 @@ export class HomeComponent implements OnInit {
       const cityTopicArgs = stateTopicArgs.concat([this.report.name]);
       const stateTopic = this.generateTopic(stateTopicArgs);
       const cityTopic =  this.generateTopic(cityTopicArgs);
-      firebase.subscribeToTopic(stateTopic).then(() => console.log(`Subscribed to topic ${stateTopic}`));
-      firebase.subscribeToTopic(cityTopic).then(() => console.log(`Subscribed to topic ${cityTopic}`));
+      this.notificationService.subscribeToTopics([stateTopic, cityTopic], true);
   }
 
   onMapReady(event) {
@@ -258,5 +258,5 @@ export class HomeComponent implements OnInit {
         topic = topic.substring(0, topic.lastIndexOf('_'));
     }
     return topic;
-}
+  }
 }

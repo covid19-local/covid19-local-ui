@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-const firebase = require('nativescript-plugin-firebase');
+import { NotificationService } from './services/notification.service';
 
 @Component({
   selector: 'app-root',
@@ -7,26 +7,9 @@ const firebase = require('nativescript-plugin-firebase');
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
+  constructor(private notificationService: NotificationService) {}
+
   ngOnInit() {
-    firebase.init({
-
-      showNotifications: true,
-      showNotificationsWhenInForeground: true,
-
-      onPushTokenReceivedCallback: (token) => {
-        console.log('[Firebase] onPushTokenReceivedCallback:', { token });
-      },
-
-      onMessageReceivedCallback: (message) => {
-        console.log('[Firebase] onMessageReceivedCallback:', { message });
-      }
-
-    }).then(
-      () => {
-        console.log('firebase.init done'); },
-      error => {
-        console.log(`firebase.init error: ${error}`);
-      }
-    );
+    this.notificationService.initialize();
   }
 }
