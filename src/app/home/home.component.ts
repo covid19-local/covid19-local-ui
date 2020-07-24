@@ -52,6 +52,7 @@ export class HomeComponent implements OnInit {
   city: AddressComponent;
   report: City;
   date = new Date();
+  states: string[] = [];
   @ViewChild('MapView', {static: false}) mapView: MapView & {infoWindowTemplates: string };
 
   lastCamera: String;
@@ -122,7 +123,52 @@ export class HomeComponent implements OnInit {
                 this.city = this.cityResult.address_components
                 .find(component => component.types.includes('locality'));
             }
-            this.getCovidReports();
+            if (!this.hasState(this.state.long_name)) {
+                this.addState(this.state.long_name);
+                this.getCovidReports();
+            }
+        } else {
+            console.log('Status is not OK');
+        }
+    }, (error) => {
+        console.log(error);
+    });
+  }
+
+  hasState(stateLongName: string): boolean {
+      return this.states.includes(stateLongName);
+  }
+
+  addState(stateLongName: string) {
+      if (!this.hasState(stateLongName)) {
+          this.states.push(stateLongName);
+      }
+  }
+
+  getState(latitude: number, longitude: number) {
+    this.mapService.reverseGeocode(latitude, longitude)
+    .subscribe(response => {
+        if (response.status === 'OK') {
+            const countryResult = response.results.find(result => result.types.includes('country'));
+            const stateResult = response.results.find(result => result.types.includes('administrative_area_level_1'));
+            let country: AddressComponent;
+            if (!isNullOrUndefined(this.countryResult)) {
+                country = countryResult.address_components
+                .find(component => component.types.includes('country'));
+            }
+            let state: AddressComponent;
+            if (!isNullOrUndefined(this.stateResult)) {
+                state = stateResult.address_components
+                .find(component => component.types.includes('administrative_area_level_1'));
+            }
+            if (state.long_name !== this.state.long_name) {
+                const regionName = country.short_name;
+                const province = state.long_name;
+                if (!this.hasState(province)) {
+                    this.addState(province);
+                    this.getCovidReportsForRegion(regionName, province, false);
+                }
+            }
         } else {
             console.log('Status is not OK');
         }
@@ -132,20 +178,25 @@ export class HomeComponent implements OnInit {
   }
 
   getCovidReports() {
-      const regionName = this.country.short_name;
-      const province = this.state.long_name;
+    const regionName = this.country.short_name;
+    const province = this.state.long_name;
+    this.getCovidReportsForRegion(regionName, province, true);
+  }
+
+  getCovidReportsForRegion(regionName: string, province: string, setReport: boolean) {
       this.covidService.getReports(this.date, regionName, province).subscribe(result => {
           if (result.data.length > 0) {
+            let theReport: City;
             const datum = result.data[0];
-            this.report = datum.region.cities.
+            theReport = datum.region.cities.
             find(cityReport =>
                 this.matchesAddress(cityReport, this.county));
-            if (isNullOrUndefined(this.report)) {
-                this.report = result.data[0].region.cities.
+            if (isNullOrUndefined(theReport)) {
+                theReport = result.data[0].region.cities.
                 find(cityReport =>
                     this.matchesAddress(cityReport, this.city));
-                if (isNullOrUndefined(this.report)) {
-                    this.report = {
+                if (isNullOrUndefined(theReport)) {
+                    theReport = {
                         name: datum.region.province,
                         date: datum.date,
                         fips: 0,
@@ -159,11 +210,14 @@ export class HomeComponent implements OnInit {
                      };
                 }
             }
-            this.latitude = +this.report.lat;
-            this.longitude = +this.report.long;
-            this.isLocationLoaded = true;
-            this.subscribeToNotifications();
-            this.setPrimaryMarker();
+            if (setReport) {
+                this.report = theReport;
+                this.latitude = +this.report.lat;
+                this.longitude = +this.report.long;
+                this.isLocationLoaded = true;
+                this.subscribeToNotifications();
+                this.setPrimaryMarker();
+            }
             result.data[0].region.cities.filter(report => report !== this.report).forEach(report => {
                 if (report.name.toUpperCase() !== 'UNASSIGNED') {
                     this.setMarker(+report.lat, +report.long, report.name, report.confirmed, this.convertToDate(report.date), false);
@@ -233,6 +287,14 @@ export class HomeComponent implements OnInit {
       this.mapView = event.object;
       this.mapView.infoWindowTemplates = templates;
       this.enableLocation();
+  }
+
+  onCameraChanged(event) {
+    const visibleRegion = this.mapView.gMap.getProjection().getVisibleRegion();
+    this.getState(visibleRegion.farLeft.latitude, visibleRegion.farLeft.longitude);
+    this.getState(visibleRegion.farRight.latitude, visibleRegion.farRight.longitude);
+    this.getState(visibleRegion.nearLeft.latitude, visibleRegion.nearLeft.longitude);
+    this.getState(visibleRegion.nearRight.latitude, visibleRegion.nearRight.longitude);
   }
 
   convertToDate(input: string): Date {
