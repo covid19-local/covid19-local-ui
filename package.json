@@ -3,7 +3,7 @@
   "nativescript": {
     "id": "org.nativescript.covid19ui",
     "tns-android": {
-      "version": "6.5.0"
+      "version": "6.5.3"
     }
   },
   "version": "0.0.0",
