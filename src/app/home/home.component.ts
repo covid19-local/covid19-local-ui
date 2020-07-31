@@ -15,6 +15,8 @@ import { LocationService } from '../services/location.service';
 import { HomeLocation } from '../models/home-location';
 import { confirm } from 'tns-core-modules/ui/dialogs';
 import { Report } from '../models/report';
+import { UserSettings } from '../models/user-settings';
+import { UserSettingsService } from '../services/user-settings.service';
 
 registerElement('MapView', () => MapView);
 
@@ -53,6 +55,29 @@ export class HomeComponent implements OnInit {
     }
     public report: Report;
     isLocationLoaded = false;
+
+    public get enableNotifications(): boolean {
+        return this.userSettings.enableNotifications;
+    }
+    public set enableNotifications(value: boolean) {
+        const userSettings = this.userSettings;
+        userSettings.enableNotifications = value;
+        this.userSettings = userSettings;
+        if (!value) {
+            this.notificationService.disableNotifications();
+        } else {
+            if (!isNullOrUndefined(this.location)) {
+                this.subscribeToNotificationsForHomeLocation(this.location);
+            }
+        }
+    }
+
+    public get userSettings(): UserSettings {
+        return this.userSettingsService.userSettings;
+    }
+    public set userSettings(value: UserSettings) {
+        this.userSettingsService.userSettings = value;
+    }
     @ViewChild('MapView', { static: false }) mapView: MapView & { infoWindowTemplates: string };
 
     lastCamera: String;
@@ -60,7 +85,8 @@ export class HomeComponent implements OnInit {
     constructor(private mapService: MapService, private covidService: CovidService,
         private datePipe: DatePipe, private decimalPipe: DecimalPipe,
         private notificationService: NotificationService,
-        private locationService: LocationService) { }
+        private locationService: LocationService,
+        private userSettingsService: UserSettingsService) { }
 
     ngOnInit() {
     }
@@ -313,7 +339,11 @@ export class HomeComponent implements OnInit {
             };
 
             this.addState(homeLocation.province.name);
-            this.subscribeToNotificationsForHomeLocation(homeLocation);
+            if (this.enableNotifications) {
+                this.subscribeToNotificationsForHomeLocation(homeLocation);
+            } else {
+                this.notificationService.disableNotifications();
+            }
             this.setMarker(homeLocation.lat, homeLocation.long, homeLocation.name,
                 homeReport.confirmed, this.convertToDate(homeReport.date), true);
             this.setMarkersForReports(homeLocation, reports.region.cities.filter(report => report.name !== homeLocation.name));
@@ -331,6 +361,10 @@ export class HomeComponent implements OnInit {
             await this.setMarkersForLocation(visibleRegion.nearLeft.latitude, visibleRegion.nearLeft.longitude);
             await this.setMarkersForLocation(visibleRegion.nearRight.latitude, visibleRegion.nearRight.longitude);
         }
+    }
+
+    public onCheckedChange(event: any) {
+        this.enableNotifications = event.value;
     }
 
     convertToDate(input: string): Date {

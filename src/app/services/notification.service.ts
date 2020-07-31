@@ -10,4 +10,5 @@ export class NotificationService {
   initialize() {}
   subscribeToTopic(topic: string) {}
   subscribeToTopics(topics: string[], removeOtherTopics: boolean) {}
+  disableNotifications() {}
 }

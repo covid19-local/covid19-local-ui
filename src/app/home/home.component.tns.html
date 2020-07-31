@@ -18,10 +18,16 @@
                 <Label [text]="report.deaths_diff"></Label>
             </StackLayout>
         </StackLayout>
-        <StackLayout orientation="horizontal" margin="2">
-            <Label text="Last updated "></Label>
-            <Label [text]="report.date | date : 'shortDate'"></Label>
-        </StackLayout>
+        <DockLayout margin="2"> 
+            <StackLayout dock="right" orientation="horizontal">
+                <Label text="Enable notifications " style="vertical-align:middle; font-weight: bold;"></Label>
+                <Switch title="Enable notificaitons" [checked]="enableNotifications" (checkedChange)="onCheckedChange($event)"></Switch>
+            </StackLayout>
+            <StackLayout orientation="horizontal">
+                <Label text="Last updated "></Label>
+                <Label [text]="report.date | date : 'shortDate'"></Label>
+            </StackLayout>
+        </DockLayout>
     </StackLayout>
     <MapView #mapView [latitude]="location.lat" [longitude]="location.long"
              [zoom]="zoom" [bearing]="bearing"

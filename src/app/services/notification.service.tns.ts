@@ -100,4 +100,10 @@ export class NotificationService {
           this.subscribeToTopic(topic);
       }
   }
+
+  disableNotifications() {
+    for (const topic of this.subscribedTopics) {
+      this.unsubscribeFromTopic(topic);
+    }
+  }
 }
