@@ -1,5 +1,5 @@
 <StackLayout>
-    <MapView #mapView [latitude]="latitude" [longitude]="longitude"
+    <MapView #mapView [latitude]="location.lat" [longitude]="location.long"
              [zoom]="zoom" [bearing]="bearing"
              [tilt]="tilt" i-padding="50,50,50,50" [padding]="padding" (mapReady)="onMapReady($event)" (cameraChanged)="onCameraChanged($event)"
              [visibility]="isLocationLoaded ? 'visible' : 'collapsed'">
