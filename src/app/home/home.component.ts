@@ -14,6 +14,7 @@ import { NotificationService } from '../services/notification.service';
 import { LocationService } from '../services/location.service';
 import { HomeLocation } from '../models/home-location';
 import { confirm } from 'tns-core-modules/ui/dialogs';
+import { Report } from '../models/report';
 
 registerElement('MapView', () => MapView);
 
@@ -50,6 +51,7 @@ export class HomeComponent implements OnInit {
     public set location(value: HomeLocation) {
         this.locationService.location = value;
     }
+    public report: Report;
     isLocationLoaded = false;
     @ViewChild('MapView', { static: false }) mapView: MapView & { infoWindowTemplates: string };
 
@@ -302,6 +304,14 @@ export class HomeComponent implements OnInit {
             }
             this.isLocationLoaded = true;
 
+            this.report = {
+                date: this.convertToDate(homeReport.date),
+                confirmed: homeReport.confirmed,
+                confirmed_diff: homeReport.confirmed_diff,
+                deaths: homeReport.deaths,
+                deaths_diff: homeReport.deaths_diff
+            };
+
             this.addState(homeLocation.province.name);
             this.subscribeToNotificationsForHomeLocation(homeLocation);
             this.setMarker(homeLocation.lat, homeLocation.long, homeLocation.name,
@@ -313,11 +323,14 @@ export class HomeComponent implements OnInit {
     }
 
     async onCameraChanged(event) {
-        const visibleRegion = this.mapView.gMap.getProjection().getVisibleRegion();
-        await this.setMarkersForLocation(visibleRegion.farLeft.latitude, visibleRegion.farLeft.longitude);
-        await this.setMarkersForLocation(visibleRegion.farRight.latitude, visibleRegion.farRight.longitude);
-        await this.setMarkersForLocation(visibleRegion.nearLeft.latitude, visibleRegion.nearLeft.longitude);
-        await this.setMarkersForLocation(visibleRegion.nearRight.latitude, visibleRegion.nearRight.longitude);
+        this.mapView = event.object;
+        if (!isNullOrUndefined(this.mapView)) {
+            const visibleRegion = this.mapView.gMap.getProjection().getVisibleRegion();
+            await this.setMarkersForLocation(visibleRegion.farLeft.latitude, visibleRegion.farLeft.longitude);
+            await this.setMarkersForLocation(visibleRegion.farRight.latitude, visibleRegion.farRight.longitude);
+            await this.setMarkersForLocation(visibleRegion.nearLeft.latitude, visibleRegion.nearLeft.longitude);
+            await this.setMarkersForLocation(visibleRegion.nearRight.latitude, visibleRegion.nearRight.longitude);
+        }
     }
 
     convertToDate(input: string): Date {

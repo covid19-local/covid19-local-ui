@@ -1,7 +1,30 @@
-<StackLayout>
+<DockLayout stretchLastChild="true" [visibility]="isLocationLoaded ? 'visible' : 'collapsed'">
+    <StackLayout *ngIf="report !== undefined && report !== null" dock="bottom" orientation="vertical">
+        <StackLayout orientation="horizontal" margin="2">
+            <Label text="My location - " style="font-weight: bold;"></Label>
+            <Label [text]="location.name" style="font-weight: bold;"></Label>
+        </StackLayout>
+        <StackLayout orientation="horizontal">
+            <StackLayout orientation="vertical" margin="2">
+                <Label text="Confirmed cases"></Label>
+                <Label [text]="report.confirmed"></Label>
+                <Label text="Difference from previous day"></Label>
+                <Label [text]="report.confirmed_diff"></Label>
+            </StackLayout>
+            <StackLayout orientation="vertical" margin="2">
+                <Label text="Deaths"></Label>
+                <Label [text]="report.deaths"></Label>
+                <Label text="Difference from previous day"></Label>
+                <Label [text]="report.deaths_diff"></Label>
+            </StackLayout>
+        </StackLayout>
+        <StackLayout orientation="horizontal" margin="2">
+            <Label text="Last updated "></Label>
+            <Label [text]="report.date | date : 'shortDate'"></Label>
+        </StackLayout>
+    </StackLayout>
     <MapView #mapView [latitude]="location.lat" [longitude]="location.long"
              [zoom]="zoom" [bearing]="bearing"
-             [tilt]="tilt" i-padding="50,50,50,50" [padding]="padding" (mapReady)="onMapReady($event)" (cameraChanged)="onCameraChanged($event)"
-             [visibility]="isLocationLoaded ? 'visible' : 'collapsed'">
+             [tilt]="tilt" i-padding="50,50,50,50" [padding]="padding" (mapReady)="onMapReady($event)" (cameraChanged)="onCameraChanged($event)">
     </MapView>
-</StackLayout>
+</DockLayout>
