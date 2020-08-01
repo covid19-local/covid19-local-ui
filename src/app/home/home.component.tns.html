@@ -21,7 +21,7 @@
         <DockLayout margin="2"> 
             <StackLayout dock="right" orientation="horizontal">
                 <Label text="Enable notifications " style="vertical-align:middle; font-weight: bold;"></Label>
-                <Switch title="Enable notificaitons" [checked]="enableNotifications" (checkedChange)="onCheckedChange($event)"></Switch>
+                <Switch [checked]="enableNotifications" (checkedChange)="onCheckedChange($event)"></Switch>
             </StackLayout>
             <StackLayout orientation="horizontal">
                 <Label text="Last updated "></Label>
