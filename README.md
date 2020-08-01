@@ -1,27 +1,25 @@
-# covid19-ui
+# covid19-local-ui
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 6.1.0.
+This project was generated with NativeScript CLI
 
-## Development server
+## Prerequisites
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+1. Install NativeScript command line  
+https://docs.nativescript.org/angular/start/quick-setup
+2. Set up Google Maps APIs
+3. Set up Firebase account for notifications
 
-## Code scaffolding
+## Initial Setup
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+1. Copy nativescript_google_maps_api.sample to App_Resources\Android\values\nativescript_google_maps_api.xml
+2. Open nativescript_google_maps_api.xml and uncomment the string tags.
+3. Change values to actual Google Maps API keys
+4. Download Firebase JSON to App_Resources\Android\google-services.json
 
 ## Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+Use NativeScript CLI to run the Android application  
+https://docs.nativescript.org/angular/start/cli-basics#full-setup-using-run
+```
+tns run android
+```
